@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Python Post Data to SAP</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>  
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+<body>
+  <h2>Python Post Data to SAP</h2>
+  <p>Product Inventory</p>
+<div align="left" style="margin:16px 16px;" style="padding-bottom:1px;"><button type="button" class="btn btn-danger" id="delete">Post Data to SAP</button>
+<div align="right" style="margin:1px 106px;" style="padding-bottom:1px;"><a href="{{ url_for('addform') }}" class="link"><img alt='Add' title='Add' src="{{ url_for('static', filename = 'images/add.png') }}" width='20px' height='20px'/>Add data</a></div>  
+<div class="container">
+<br/>
+  <table class="table table-striped" style="font-size:12px;">
+    <thead> 
+      <tr>
+        <th>
+          <input type="checkbox" id="checkAll">
+        </th>	  
+        <th>Product ID</th>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Available</th>
+        <th>Unit Price</th>	
+		<th>Date Checked</th>	
+      </tr>
+    </thead>
+    <tbody>	
+{% for item in data2 %}	
+      <tr>
+	    <td><input class="checkbox" type="checkbox" id="{{item[0]}}" name="ID[]"></td>
+        <td>{{item[1]}}</td>
+        <td>{{item[2]}}</td>
+        <td>{{item[3]}}</td>
+        <td>{{item[4]}}</td>
+        <td>{{item[5]}}</td>	
+        <td>{{item[6]}}</td>		
+      </tr>
+{% endfor %}	  
+    </tbody>
+  </table>
+  <br/> 
+</div>
+
+<script type="text/javascript">
+  
+  $(document).ready(function(){
+      $('#checkAll').click(function(){
+         if(this.checked){
+             $('.checkbox').each(function(){
+                this.checked = true;
+             });   
+         }else{
+            $('.checkbox').each(function(){
+                this.checked = false;
+             });
+         } 
+      });
+	  
+    $('#delete').click(function(){
+       var dataArr  = new Array();
+       if($('input:checkbox:checked').length > 0){
+          $('input:checkbox:checked').each(function(){
+              dataArr.push($(this).attr('ID'));
+              $(this).closest('tr').remove();
+          });
+		  // alert(dataArr);
+          sendResponse(dataArr);
+		  console.log(dataArr);
+       }else{
+         alert('No record selected ');
+       }
+    }); 
+
+    function sendResponse(dataArr){
+        $.ajax({
+            type    : 'post',
+            url     : 'http://10.32.128.128:5000/processjson2',
+			data : "ID=" + encodeURIComponent(dataArr),
+			success : function(response){
+                        // alert(response);  //only for test display json data return
+						//console.log(response);
+						submitData(response);
+                      },
+            error   : function(errResponse){
+                      alert(errResponse);
+                      }     
+           // submitData(response);					  
+        });
+    }
+
+	function submitData(response){
+      var xmlhttp = new XMLHttpRequest();  
+      xmlhttp.open("POST", "http://10.3.3.135:8000/sap/bc/zsv_python_serv?sap-client=020");
+      xmlhttp.send(response);
+      console.log(response); 
+	  
+		window.history.back();
+          location.reload(); 	
+}	
+  });
+</script> 
+</body>
+</html>
